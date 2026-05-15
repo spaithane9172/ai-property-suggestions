@@ -1,10 +1,11 @@
-const askAI = require("../ai/ollama.js");
+const { askAI } = require("../ai/ollama.js");
+const { viewAllVectorData } = require("../vectorDB/vectorModel.js");
 
 const aiChat = {
   chat: async (req, res) => {
     try {
       const { message } = req.body;
-      console.log(message);
+      // console.log(message);
       if (!message) {
         res.status(400).json({ message: "Please enter correct question." });
       }

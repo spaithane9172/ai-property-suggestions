@@ -1,7 +1,9 @@
+const { response } = require("express");
 const buildContext = require("../ai/buildContext");
-const askAI = require("../ai/ollama");
+const { askAI, generateSQL } = require("../ai/ollama");
 const propertiesModel = require("../models/properties");
 const vectorModel = require("../vectorDB/vectorModel");
+const db = require("../config/db");
 
 const vectorController = {
   bulkInsert: async (req, res) => {
@@ -29,23 +31,35 @@ const vectorController = {
   searchProperty: async (req, res) => {
     try {
       const { query } = req.body;
-      const result = await vectorModel.searchProperty(query);
-      const propertiesData = [];
-      console.log(result);
-      if (result.length === 0) {
-        res.status(200).json({
-          data: "No suitable property found",
-          message: "Property found",
-        });
-        return;
-      }
-      for (let p of result) {
-        const property = await propertiesModel.getPropertyById(p.id);
-        propertiesData.push(property);
+      // const result = await vectorModel.searchProperty(query);
+
+      const sqlResult = await generateSQL(query);
+      console.log("sql q", sqlResult);
+
+      if (!sqlResult.success) {
+        console.log("object");
+        return res.send("no property found.");
       }
 
-      const context = await buildContext(propertiesData);
-      const msg = await askAI(query, context);
+      const [data] = await db.query(sqlResult.sql);
+      console.log("sql data ", data);
+
+      // const propertiesData = [];
+      // console.log("vecotr db data", result);
+      // if (result.length === 0) {
+      //   res.status(200).json({
+      //     data: "No suitable property found",
+      //     message: "Property found",
+      //   });
+      //   return;
+      // }
+      // for (let p of result) {
+      //   const property = await propertiesModel.getPropertyById(p.id);
+      //   propertiesData.push(property);
+      // }
+
+      // const context = await buildContext(propertiesData);
+      const msg = await askAI(query, data);
       res.status(200).json({ data: msg, message: "Property found" });
     } catch (error) {
       console.log(error);

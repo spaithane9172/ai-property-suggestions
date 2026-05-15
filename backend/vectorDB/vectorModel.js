@@ -54,7 +54,8 @@ async function viewAllVectorData() {
     with_payload: true,
     with_vector: false,
   });
-  //   console.log(JSON.stringify(result.points, null, 2));
+  console.log("v result : ", JSON.stringify(result));
+  // console.log(JSON.stringify(result.points, null, 2));
   return result;
 }
 
